@@ -1,5 +1,5 @@
 {
-    "name": "graphaware/neo4j-php-client",
+    "name": "tobinfree/neo4j-php-client",
     "type": "library",
     "description": "Neo4j-PHP-Client is the most advanced PHP Client for Neo4j",
     "keywords": [
@@ -43,12 +43,12 @@
     },
     "autoload": {
         "psr-4": {
-            "GraphAware\\Neo4j\\Client\\": "src/"
+            "tobinfree\\Neo4j\\Client\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "GraphAware\\Neo4j\\Client\\Tests\\": "tests/"
+            "tobinfree\\Neo4j\\Client\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev"
