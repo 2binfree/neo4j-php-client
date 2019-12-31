@@ -43,12 +43,12 @@
     },
     "autoload": {
         "psr-4": {
-            "tobinfree\\Neo4j\\Client\\": "src/"
+            "GraphAware\\Neo4j\\Client\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "tobinfree\\Neo4j\\Client\\Tests\\": "tests/"
+            "GraphAware\\Neo4j\\Client\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev"
