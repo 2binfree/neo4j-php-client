@@ -14,7 +14,8 @@ namespace GraphAware\Neo4j\Client\HttpDriver;
 use GraphAware\Common\Connection\BaseConfiguration;
 use GraphAware\Common\Driver\ConfigInterface;
 use GraphAware\Common\Driver\DriverInterface;
-use Http\Adapter\Guzzle6\Client;
+use Http\Adapter\Guzzle7\Client;
+use Http\Client\HttpClient;
 
 class Driver implements DriverInterface
 {
@@ -23,18 +24,18 @@ class Driver implements DriverInterface
     /**
      * @var string
      */
-    protected $uri;
+    protected string $uri;
 
     /**
      * @var Configuration
      */
-    protected $config;
+    protected Configuration|BaseConfiguration|ConfigInterface $config;
 
     /**
-     * @param string            $uri
-     * @param BaseConfiguration $config
+     * @param string $uri
+     * @param ConfigInterface|null $config
      */
-    public function __construct($uri, ConfigInterface $config = null)
+    public function __construct(string $uri, ConfigInterface $config = null)
     {
         if (null !== $config && !$config instanceof BaseConfiguration) {
             throw new \RuntimeException(sprintf('Second argument to "%s" must be null or "%s"', __CLASS__, BaseConfiguration::class));
@@ -47,7 +48,7 @@ class Driver implements DriverInterface
     /**
      * @return Session
      */
-    public function session()
+    public function session(): Session
     {
         return new Session($this->uri, $this->getHttpClient(), $this->config);
     }
@@ -55,14 +56,14 @@ class Driver implements DriverInterface
     /**
      * @return string
      */
-    public function getUri()
+    public function getUri(): string
     {
         return $this->uri;
     }
 
     /**
      *
-     * @return \Http\Client\HttpClient
+     * @return HttpClient
      */
     private function getHttpClient()
     {

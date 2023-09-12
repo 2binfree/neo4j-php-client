@@ -17,77 +17,50 @@ use GraphAware\Bolt\Exception\MessageFailureException;
 use GraphAware\Bolt\GraphDatabase as BoltGraphDB;
 use GraphAware\Common\Connection\BaseConfiguration;
 use GraphAware\Common\Cypher\Statement;
+use GraphAware\Common\Driver\DriverInterface;
+use GraphAware\Common\Driver\PipelineInterface;
+use GraphAware\Common\Driver\SessionInterface;
+use GraphAware\Common\Result\Result;
+use GraphAware\Common\Result\ResultCollection;
+use GraphAware\Common\Transaction\TransactionInterface;
 use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\Client\HttpDriver\GraphDatabase as HttpGraphDB;
 use GraphAware\Neo4j\Client\StackInterface;
+use InvalidArgumentException;
+use RuntimeException;
 
 class Connection
 {
-    /**
-     * @var string The Connection Alias
-     */
-    private $alias;
+    private string $alias;
 
-    /**
-     * @var string
-     */
-    private $uri;
+    private string $uri;
 
-    /**
-     * @var \GraphAware\Common\Driver\DriverInterface The configured driver
-     */
-    private $driver;
+    private DriverInterface $driver;
 
-    /**
-     * @var array
-     */
-    private $config;
+    private array|BaseConfiguration|null $config;
 
-    /**
-     * @var \GraphAware\Common\Driver\SessionInterface
-     */
-    private $session;
+    private SessionInterface $session;
 
-    /**
-     * Connection constructor.
-     *
-     * @param string                 $alias
-     * @param string                 $uri
-     * @param BaseConfiguration|null $config
-     */
-    public function __construct($alias, $uri, $config = null)
+    public function __construct(string $alias, string $uri, BaseConfiguration $config = null)
     {
-        $this->alias = (string) $alias;
-        $this->uri = (string) $uri;
+        $this->alias = $alias;
+        $this->uri = $uri;
         $this->config = $config;
 
         $this->buildDriver();
     }
 
-    /**
-     * @return string
-     */
-    public function getAlias()
+    public function getAlias(): string
     {
         return $this->alias;
     }
 
-    /**
-     * @return \GraphAware\Common\Driver\DriverInterface
-     */
-    public function getDriver()
+    public function getDriver(): DriverInterface
     {
         return $this->driver;
     }
 
-    /**
-     * @param null  $query
-     * @param array $parameters
-     * @param null  $tag
-     *
-     * @return \GraphAware\Common\Driver\PipelineInterface
-     */
-    public function createPipeline($query = null, $parameters = [], $tag = null)
+    public function createPipeline($query = null, array $parameters = [], $tag = null): PipelineInterface
     {
         $this->checkSession();
         $parameters = is_array($parameters) ? $parameters : [];
@@ -96,25 +69,18 @@ class Connection
     }
 
     /**
-     * @param string      $statement
-     * @param array|null  $parameters
-     * @param null|string $tag
-     *
      * @throws Neo4jException
-     *
-     * @return \GraphAware\Common\Result\Result
      */
-    public function run($statement, $parameters = null, $tag = null)
+    public function run(string $statement, array $parameters = null, string $tag = null): Result
     {
         $this->checkSession();
         if (empty($statement)) {
-            throw new \InvalidArgumentException(sprintf('Expected a non-empty Cypher statement, got "%s"', $statement));
+            throw new InvalidArgumentException(sprintf('Expected a non-empty Cypher statement, got "%s"', $statement));
         }
         $parameters = (array) $parameters;
 
         try {
-            $result = $this->session->run($statement, $parameters, $tag);
-            return $result;
+            return $this->session->run($statement, $parameters, $tag);
         } catch (MessageFailureException $e) {
             $exception = new Neo4jException($e->getMessage());
             $exception->setNeo4jStatusCode($e->getStatusCode());
@@ -123,12 +89,7 @@ class Connection
         }
     }
 
-    /**
-     * @param array $queue
-     *
-     * @return \GraphAware\Common\Result\ResultCollection
-     */
-    public function runMixed(array $queue)
+    public function runMixed(array $queue): ResultCollection
     {
         $this->checkSession();
         $pipeline = $this->createPipeline();
@@ -146,31 +107,25 @@ class Connection
         return $pipeline->run();
     }
 
-    /**
-     * @return \GraphAware\Common\Transaction\TransactionInterface
-     */
-    public function getTransaction()
+    public function getTransaction(): TransactionInterface
     {
         $this->checkSession();
 
         return $this->session->transaction();
     }
 
-    /**
-     * @return \GraphAware\Common\Driver\SessionInterface
-     */
-    public function getSession()
+    public function getSession(): SessionInterface
     {
         $this->checkSession();
 
         return $this->session;
     }
 
-    private function buildDriver()
+    private function buildDriver(): void
     {
         $params = parse_url($this->uri);
 
-        if (preg_match('/bolt/', $this->uri)) {
+        if (str_contains($this->uri, 'bolt')) {
             $port = isset($params['port']) ? (int) $params['port'] : BoltDriver::DEFAULT_TCP_PORT;
             $uri = sprintf('%s://%s:%d', $params['scheme'], $params['host'], $port);
             $config = null;
@@ -178,15 +133,15 @@ class Connection
                 $config = BoltConfiguration::create()->withCredentials($params['user'], $params['pass']);
             }
             $this->driver = BoltGraphDB::driver($uri, $config);
-        } elseif (preg_match('/http/', $this->uri)) {
+        } elseif (str_contains($this->uri, 'http')) {
             $uri = $this->uri;
             $this->driver = HttpGraphDB::driver($uri, $this->config);
         } else {
-            throw new \RuntimeException(sprintf('Unable to build a driver from uri "%s"', $this->uri));
+            throw new RuntimeException(sprintf('Unable to build a driver from uri "%s"', $this->uri));
         }
     }
 
-    private function checkSession()
+    private function checkSession(): void
     {
         if (null === $this->session) {
             $this->session = $this->driver->session();

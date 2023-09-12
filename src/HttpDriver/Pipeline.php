@@ -13,18 +13,20 @@ namespace GraphAware\Neo4j\Client\HttpDriver;
 
 use GraphAware\Common\Cypher\Statement;
 use GraphAware\Common\Driver\PipelineInterface;
+use GraphAware\Common\Result\ResultCollection;
+use GraphAware\Neo4j\Client\Exception\Neo4jException;
 
 class Pipeline implements PipelineInterface
 {
     /**
      * @var Session
      */
-    protected $session;
+    protected Session $session;
 
     /**
      * @var Statement[]
      */
-    protected $statements = [];
+    protected array $statements = [];
 
     /**
      * @param Session $session
@@ -37,15 +39,16 @@ class Pipeline implements PipelineInterface
     /**
      * {@inheritdoc}
      */
-    public function push($query, array $parameters = [], $tag = null)
+    public function push($query, array $parameters = [], $tag = null): void
     {
         $this->statements[] = Statement::create($query, $parameters, $tag);
     }
 
     /**
      * {@inheritdoc}
+     * @throws Neo4jException
      */
-    public function run()
+    public function run(): ResultCollection
     {
         return $this->session->flush($this);
     }
@@ -53,7 +56,7 @@ class Pipeline implements PipelineInterface
     /**
      * @return Statement[]
      */
-    public function statements()
+    public function statements(): array
     {
         return $this->statements;
     }
@@ -61,7 +64,7 @@ class Pipeline implements PipelineInterface
     /**
      * @return int
      */
-    public function size()
+    public function size(): int
     {
         return count($this->statements);
     }

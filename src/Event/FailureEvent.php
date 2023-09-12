@@ -12,37 +12,38 @@
 namespace GraphAware\Neo4j\Client\Event;
 
 use GraphAware\Neo4j\Client\Exception\Neo4jExceptionInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class FailureEvent extends Event
+class FailureEvent extends EventDispatcher
 {
     /**
      * @var Neo4jExceptionInterface
      */
-    protected $exception;
+    protected Neo4jExceptionInterface $exception;
 
     /**
      * @var bool
      */
-    protected $shouldThrowException = true;
+    protected bool $shouldThrowException = true;
 
     /**
      * @param Neo4jExceptionInterface $exception
      */
     public function __construct(Neo4jExceptionInterface $exception)
     {
+        parent::__construct();
         $this->exception = $exception;
     }
 
     /**
      * @return Neo4jExceptionInterface
      */
-    public function getException()
+    public function getException(): Neo4jExceptionInterface
     {
         return $this->exception;
     }
 
-    public function disableException()
+    public function disableException(): void
     {
         $this->shouldThrowException = false;
     }
@@ -50,7 +51,7 @@ class FailureEvent extends Event
     /**
      * @return bool
      */
-    public function shouldThrowException()
+    public function shouldThrowException(): bool
     {
         return $this->shouldThrowException;
     }

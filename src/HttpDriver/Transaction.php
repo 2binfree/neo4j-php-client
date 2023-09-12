@@ -12,6 +12,8 @@
 namespace GraphAware\Neo4j\Client\HttpDriver;
 
 use GraphAware\Common\Cypher\Statement;
+use GraphAware\Common\Result\RecordCursorInterface;
+use GraphAware\Common\Result\ResultCollection;
 use GraphAware\Common\Transaction\TransactionInterface;
 use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\Client\Exception\Neo4jExceptionInterface;
@@ -24,26 +26,26 @@ class Transaction implements TransactionInterface
 
     const ROLLED_BACK = 'ROLLED_BACK';
 
-    protected $state;
+    protected string $state;
 
     /**
      * @var Session
      */
-    protected $session;
+    protected Session $session;
 
     /**
      * @var bool
      */
-    protected $closed = false;
+    protected bool $closed = false;
 
     /**
      * @var int|null
      */
-    protected $transactionId;
+    protected ?int $transactionId;
 
     protected $expires;
 
-    protected $pending = [];
+    protected array $pending = [];
 
     /**
      * @param Session $session
@@ -57,7 +59,7 @@ class Transaction implements TransactionInterface
     /**
      * {@inheritdoc}
      */
-    public function isOpen()
+    public function isOpen(): bool
     {
         return $this->state === self::OPENED;
     }
@@ -65,7 +67,7 @@ class Transaction implements TransactionInterface
     /**
      * {@inheritdoc}
      */
-    public function isCommited()
+    public function isCommited(): bool
     {
         return $this->state === self::COMMITED;
     }
@@ -73,15 +75,16 @@ class Transaction implements TransactionInterface
     /**
      * {@inheritdoc}
      */
-    public function isRolledBack()
+    public function isRolledBack(): bool
     {
         return $this->state === self::ROLLED_BACK;
     }
 
     /**
      * {@inheritdoc}
+     * @throws Neo4jException
      */
-    public function rollback()
+    public function rollback(): void
     {
         $this->assertNotClosed();
         $this->assertStarted();
@@ -94,15 +97,16 @@ class Transaction implements TransactionInterface
     /**
      * {@inheritdoc}
      */
-    public function status()
+    public function status(): string
     {
         return $this->state;
     }
 
     /**
      * {@inheritdoc}
+     * @throws Neo4jException
      */
-    public function commit()
+    public function commit(): void
     {
         $this->success();
     }
@@ -110,19 +114,19 @@ class Transaction implements TransactionInterface
     /**
      * {@inheritdoc}
      */
-    public function push($query, array $parameters = [], $tag = null)
+    public function push($statement, array $parameters = [], $tag = null)
     {
     }
 
-    public function getStatus()
+    public function getStatus(): string
     {
         return $this->state;
     }
 
     /**
-     * {@inheritdoc}
+     * @throws Neo4jException
      */
-    public function begin()
+    public function begin(): void
     {
         $this->assertNotStarted();
         $response = $this->session->begin();
@@ -138,7 +142,7 @@ class Transaction implements TransactionInterface
      *
      * @throws Neo4jException
      *
-     * @return \GraphAware\Common\Result\RecordCursorInterface
+     * @return RecordCursorInterface
      */
     public function run(Statement $statement)
     {
@@ -148,7 +152,7 @@ class Transaction implements TransactionInterface
 
             return $results->results()[0];
         } catch (Neo4jException $e) {
-            if ($e->effect() === Neo4jException::EFFECT_ROLLBACK) {
+            if ($e->effect() === Neo4jExceptionInterface::EFFECT_ROLLBACK) {
                 $this->closed = true;
                 $this->state = self::ROLLED_BACK;
             }
@@ -162,14 +166,14 @@ class Transaction implements TransactionInterface
      *
      * @throws Neo4jException
      *
-     * @return \GraphAware\Common\Result\ResultCollection
+     * @return ResultCollection
      */
-    public function runMultiple(array $statements)
+    public function runMultiple(array $statements): ResultCollection
     {
         try {
             return $this->session->pushToTransaction($this->transactionId, $statements);
         } catch (Neo4jException $e) {
-            if ($e->effect() === Neo4jException::EFFECT_ROLLBACK) {
+            if ($e->effect() === Neo4jExceptionInterface::EFFECT_ROLLBACK) {
                 $this->closed = true;
                 $this->state = self::ROLLED_BACK;
             }
@@ -178,7 +182,10 @@ class Transaction implements TransactionInterface
         }
     }
 
-    public function success()
+    /**
+     * @throws Neo4jException
+     */
+    public function success(): void
     {
         $this->assertNotClosed();
         $this->assertStarted();
@@ -196,12 +203,12 @@ class Transaction implements TransactionInterface
         $this->session->transaction = null;
     }
 
-    public function getSession()
+    public function getSession(): Session
     {
         return $this->session;
     }
 
-    private function assertStarted()
+    private function assertStarted(): void
     {
         if ($this->state !== self::OPENED) {
             throw new \RuntimeException('This transaction has not been started');
@@ -209,14 +216,14 @@ class Transaction implements TransactionInterface
         }
     }
 
-    private function assertNotStarted()
+    private function assertNotStarted(): void
     {
         if (null !== $this->state) {
             throw new \RuntimeException(sprintf('Can not begin transaction, Transaction State is "%s"', $this->state));
         }
     }
 
-    private function assertNotClosed()
+    private function assertNotClosed(): void
     {
         if (false !== $this->closed) {
             throw new \RuntimeException('This Transaction is closed');

@@ -27,18 +27,18 @@ class Configuration extends BaseConfiguration implements ConfigInterface
      * @var int
      * @deprecated Will be removed in 5.0
      */
-    protected $timeout;
+    protected int $timeout;
 
     /**
      * @var string
      * @deprecated Will be removed in 5.0
      */
-    protected $curlInterface;
+    protected string $curlInterface;
 
     /**
      * @return Configuration
      */
-    public static function create(HttpClient $httpClient = null, RequestFactory $requestFactory = null)
+    public static function create(HttpClient $httpClient = null, RequestFactory $requestFactory = null): Configuration
     {
         return new self([
             'http_client' => $httpClient ?: HttpClientDiscovery::find(),

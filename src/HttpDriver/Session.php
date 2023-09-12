@@ -14,56 +14,61 @@ namespace GraphAware\Neo4j\Client\HttpDriver;
 use GraphAware\Common\Connection\BaseConfiguration;
 use GraphAware\Common\Driver\ConfigInterface;
 use GraphAware\Common\Driver\SessionInterface;
+use GraphAware\Common\Result\RecordCursorInterface;
+use GraphAware\Common\Result\Result;
+use GraphAware\Common\Result\ResultCollection;
 use GraphAware\Common\Transaction\TransactionInterface;
 use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\Client\Formatter\ResponseFormatter;
 use GuzzleHttp\Client as GuzzleClient;
-use Http\Adapter\Guzzle6\Client;
+use Http\Adapter\Guzzle7\Client;
 use Http\Client\Common\Plugin\ErrorPlugin;
 use Http\Client\Common\PluginClient;
 use Http\Client\Exception\HttpException;
 use Http\Client\HttpClient;
 use Http\Message\RequestFactory;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class Session implements SessionInterface
 {
     /**
      * @var string
      */
-    protected $uri;
+    protected string $uri;
 
     /**
      * @var HttpClient
      */
-    protected $httpClient;
+    protected HttpClient $httpClient;
 
     /**
      * @var ResponseFormatter
      */
-    protected $responseFormatter;
+    protected ResponseFormatter $responseFormatter;
 
     /**
      * @var TransactionInterface|null
      */
-    public $transaction;
+    public ?TransactionInterface $transaction;
 
     /**
-     * @var Configuration
+     * @var BaseConfiguration
      */
-    protected $config;
+    protected BaseConfiguration $config;
 
     /**
      * @var RequestFactory
      */
-    private $requestFactory;
+    private mixed $requestFactory;
 
     /**
-     * @param string                  $uri
+     * @param string $uri
      * @param GuzzleClient|HttpClient $httpClient
-     * @param ConfigInterface         $config
+     * @param BaseConfiguration         $config
      */
-    public function __construct($uri, $httpClient, ConfigInterface $config)
+    public function __construct(string $uri, HttpClient|GuzzleClient $httpClient, BaseConfiguration $config)
     {
         if ($httpClient instanceof GuzzleClient) {
             @trigger_error('Passing a Guzzle client to Session is deprecrated. Will be removed in 5.0. Use a HTTPlug client');
@@ -85,8 +90,9 @@ class Session implements SessionInterface
 
     /**
      * {@inheritdoc}
+     * @throws Neo4jException
      */
-    public function run($statement, array $parameters = [], $tag = null)
+    public function run($statement, array $parameters = [], $tag = null): RecordCursorInterface|Result
     {
         $parameters = is_array($parameters) ? $parameters : [];
         $pipeline = $this->createPipeline($statement, $parameters, $tag);
@@ -105,7 +111,7 @@ class Session implements SessionInterface
     /**
      * @return Transaction
      */
-    public function transaction()
+    public function transaction(): Transaction
     {
         if ($this->transaction instanceof Transaction) {
             throw new \RuntimeException('A transaction is already bound to this session');
@@ -121,7 +127,7 @@ class Session implements SessionInterface
      *
      * @return Pipeline
      */
-    public function createPipeline($query = null, array $parameters = [], $tag = null)
+    public function createPipeline($query = null, array $parameters = [], $tag = null): Pipeline
     {
         $pipeline = new Pipeline($this);
 
@@ -135,11 +141,11 @@ class Session implements SessionInterface
     /**
      * @param Pipeline $pipeline
      *
-     * @throws \GraphAware\Neo4j\Client\Exception\Neo4jException
+     * @return ResultCollection
+     * @throws Neo4jException|ClientExceptionInterface
      *
-     * @return \GraphAware\Common\Result\ResultCollection
      */
-    public function flush(Pipeline $pipeline)
+    public function flush(Pipeline $pipeline): ResultCollection
     {
         $request = $this->prepareRequest($pipeline);
         try {
@@ -172,7 +178,7 @@ class Session implements SessionInterface
      *
      * @return RequestInterface
      */
-    public function prepareRequest(Pipeline $pipeline)
+    public function prepareRequest(Pipeline $pipeline): RequestInterface
     {
         $statements = [];
         foreach ($pipeline->statements() as $statement) {
@@ -200,14 +206,14 @@ class Session implements SessionInterface
         return $this->requestFactory->createRequest('POST', sprintf('%s/db/data/transaction/commit', $this->uri), $headers, $body);
     }
 
-    private function formatParams(array $params)
+    private function formatParams(array $params): array
     {
         foreach ($params as $key => $v) {
             if (is_array($v)) {
                 if (empty($v)) {
                     $params[$key] = new \stdClass();
                 } else {
-                    $params[$key] = $this->formatParams($params[$key]);
+                    $params[$key] = $this->formatParams($v);
                 }
             }
         }
@@ -216,11 +222,11 @@ class Session implements SessionInterface
     }
 
     /**
-     * @throws Neo4jException
+     * @return ResponseInterface
+     * @throws Neo4jException|ClientExceptionInterface
      *
-     * @return \Psr\Http\Message\ResponseInterface
      */
-    public function begin()
+    public function begin(): ResponseInterface
     {
         $request = $this->requestFactory->createRequest('POST', sprintf('%s/db/data/transaction', $this->uri));
 
@@ -240,14 +246,14 @@ class Session implements SessionInterface
     }
 
     /**
-     * @param int   $transactionId
+     * @param int $transactionId
      * @param array $statementsStack
      *
-     * @throws Neo4jException
+     * @return ResultCollection
+     * @throws Neo4jException|ClientExceptionInterface
      *
-     * @return \GraphAware\Common\Result\ResultCollection
      */
-    public function pushToTransaction($transactionId, array $statementsStack)
+    public function pushToTransaction(int $transactionId, array $statementsStack): ResultCollection
     {
         $statements = [];
         foreach ($statementsStack as $statement) {
@@ -301,9 +307,9 @@ class Session implements SessionInterface
     /**
      * @param int $transactionId
      *
-     * @throws Neo4jException
+     * @throws Neo4jException|ClientExceptionInterface
      */
-    public function commitTransaction($transactionId)
+    public function commitTransaction(int $transactionId): void
     {
         $request = $this->requestFactory->createRequest('POST', sprintf('%s/db/data/transaction/%d/commit', $this->uri, $transactionId));
         try {
@@ -331,9 +337,9 @@ class Session implements SessionInterface
     /**
      * @param int $transactionId
      *
-     * @throws Neo4jException
+     * @throws Neo4jException|ClientExceptionInterface
      */
-    public function rollbackTransaction($transactionId)
+    public function rollbackTransaction(int $transactionId): void
     {
         $request = $this->requestFactory->createRequest('DELETE', sprintf('%s/db/data/transaction/%d', $this->uri, $transactionId));
 

@@ -19,12 +19,12 @@ class ResultCollection extends BaseResultCollection
     /**
      * @var string|null
      */
-    protected $tag;
+    protected ?string $tag;
 
     /**
      * @param string $tag
      */
-    public function setTag($tag)
+    public function setTag(string $tag): void
     {
         $this->tag = $tag;
     }
@@ -32,7 +32,7 @@ class ResultCollection extends BaseResultCollection
     /**
      * @return null|string
      */
-    public function getTag()
+    public function getTag(): ?string
     {
         return $this->tag;
     }
@@ -42,7 +42,7 @@ class ResultCollection extends BaseResultCollection
      *
      * @return ResultCollection
      */
-    public static function withResult(RecordCursorInterface $result)
+    public static function withResult(RecordCursorInterface $result): ResultCollection
     {
         $coll = new self();
         $coll->add($result);

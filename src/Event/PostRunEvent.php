@@ -12,27 +12,28 @@
 namespace GraphAware\Neo4j\Client\Event;
 
 use GraphAware\Common\Result\ResultCollection;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class PostRunEvent extends Event
+class PostRunEvent extends EventDispatcher
 {
     /**
      * @var ResultCollection
      */
-    protected $results;
+    protected ResultCollection $results;
 
     /**
      * @param ResultCollection $results
      */
     public function __construct(ResultCollection $results)
     {
+        parent::__construct();
         $this->results = $results;
     }
 
     /**
      * @return ResultCollection
      */
-    public function getResults()
+    public function getResults(): ResultCollection
     {
         return $this->results;
     }

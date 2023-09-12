@@ -11,7 +11,6 @@
 
 namespace GraphAware\Neo4j\Client;
 
-use GraphAware\Common\Connection\BaseConfiguration;
 use GraphAware\Common\Driver\ConfigInterface;
 use GraphAware\Neo4j\Client\Connection\ConnectionManager;
 use GraphAware\Neo4j\Client\HttpDriver\Configuration;
@@ -28,7 +27,7 @@ class ClientBuilder
     /**
      * @var array
      */
-    protected $config = [];
+    protected array $config = [];
 
     /**
      * @param array $config
@@ -50,7 +49,7 @@ class ClientBuilder
      *
      * @return ClientBuilder
      */
-    public static function create($config = [])
+    public static function create(array $config = []): ClientBuilder
     {
         return new static($config);
     }
@@ -58,21 +57,21 @@ class ClientBuilder
     /**
      * Add a connection to the handled connections.
      *
-     * @param string            $alias
-     * @param string            $uri
-     * @param BaseConfiguration $config
+     * @param string $alias
+     * @param string $uri
+     * @param ConfigInterface|null $config
      *
      * @return ClientBuilder
      */
-    public function addConnection($alias, $uri, ConfigInterface $config = null)
+    public function addConnection(string $alias, string $uri, ConfigInterface $config = null): static
     {
         //small hack for drupal
-        if (substr($uri, 0, 7) === 'bolt://') {
+        if (str_starts_with($uri, 'bolt://')) {
             $parts = explode('bolt://', $uri );
             if (count($parts) === 2) {
                 $splits = explode('@', $parts[1]);
                 $split = $splits[count($splits)-1];
-                if (substr($split, 0, 4) === 'ssl+') {
+                if (str_starts_with($split, 'ssl+')) {
                     $up = count($splits) > 1 ? $splits[0] : '';
                     $ups = explode(':', $up);
                     $u = $ups[0];
@@ -87,17 +86,13 @@ class ClientBuilder
 
         $this->config['connections'][$alias]['uri'] = $uri;
 
-        if (null !== $config) {
-            if ($this->config['connections'][$alias]['config'] = $config);
-        }
-
         return $this;
     }
 
     /**
      * @param string $variable
      */
-    public function preflightEnv($variable)
+    public function preflightEnv(string $variable): void
     {
         $this->config['connection_manager']['preflight_env'] = $variable;
     }
@@ -107,7 +102,7 @@ class ClientBuilder
      *
      * @return $this
      */
-    public function setMaster($connectionAlias)
+    public function setMaster(string $connectionAlias): static
     {
         if (!isset($this->config['connections']) || !array_key_exists($connectionAlias, $this->config['connections'])) {
             throw new \InvalidArgumentException(sprintf('The connection "%s" is not registered', (string) $connectionAlias));
@@ -129,7 +124,7 @@ class ClientBuilder
      *
      * @return $this
      */
-    public function setDefaultTimeout($timeout)
+    public function setDefaultTimeout(int $timeout): static
     {
         $this->config[static::TIMEOUT_CONFIG_KEY] = (int) $timeout;
 
@@ -142,7 +137,7 @@ class ClientBuilder
      *
      * @return $this
      */
-    public function registerEventListener($eventName, $callback)
+    public function registerEventListener(string $eventName, mixed $callback): static
     {
         $this->config['event_listeners'][$eventName][] = $callback;
 
@@ -154,16 +149,14 @@ class ClientBuilder
      *
      * @return ClientInterface
      */
-    public function build()
+    public function build(): ClientInterface
     {
         $connectionManager = new ConnectionManager();
 
         foreach ($this->config['connections'] as $alias => $conn) {
             $config =
-                isset($this->config['connections'][$alias]['config'])
-                    ? $this->config['connections'][$alias]['config']
-                    : Configuration::create()
-                        ->withTimeout($this->getDefaultTimeout());
+                $this->config['connections'][$alias]['config'] ?? Configuration::create()
+                ->withTimeout($this->getDefaultTimeout());
             $connectionManager->registerConnection(
                 $alias,
                 $conn['uri'],
@@ -193,7 +186,7 @@ class ClientBuilder
     /**
      * @return int
      */
-    private function getDefaultTimeout()
+    private function getDefaultTimeout(): int
     {
         return array_key_exists(static::TIMEOUT_CONFIG_KEY, $this->config) ? $this->config[static::TIMEOUT_CONFIG_KEY] : self::DEFAULT_TIMEOUT;
     }

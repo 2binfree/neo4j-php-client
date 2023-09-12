@@ -15,36 +15,23 @@ use GraphAware\Neo4j\Client\HttpDriver\Driver;
 
 class Config
 {
-    protected $defaultHttpPort = Driver::DEFAULT_HTTP_PORT;
+    protected int $defaultHttpPort = Driver::DEFAULT_HTTP_PORT;
 
-    protected $defaultTcpPort = 8687;
+    protected int $defaultTcpPort = 8687;
 
-    /**
-     * @return Config
-     */
-    public static function create()
+    public static function create(): Config
     {
         return new self();
     }
 
-    /**
-     * @param int $port
-     *
-     * @return $this
-     */
-    public function withDefaultHttpPort($port)
+    public function withDefaultHttpPort(int $port): static
     {
         $this->defaultHttpPort = (int) $port;
 
         return $this;
     }
 
-    /**
-     * @param int $port
-     *
-     * @return $this
-     */
-    public function withDefaultTcpPort($port)
+    public function withDefaultTcpPort(int $port): static
     {
         $this->defaultTcpPort = (int) $port;
 

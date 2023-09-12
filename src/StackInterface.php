@@ -18,67 +18,34 @@ use GraphAware\Common\Cypher\Statement;
  */
 interface StackInterface
 {
-    /**
-     * @param null|string $tag
-     * @param null|string $connectionAlias
-     *
-     * @return Stack
-     */
-    public static function create($tag = null, $connectionAlias = null);
+    public static function create(string $tag = null, string $connectionAlias = null): Stack;
 
-    /**
-     * @param string     $query
-     * @param null|array $parameters
-     * @param null|array $tag
-     */
-    public function push($query, $parameters = null, $tag = null);
+    public function push(string $query, array $parameters = null, array $tag = null);
 
-    /**
-     * @param string     $query
-     * @param null|array $parameters
-     * @param null|array $tag
-     */
-    public function pushWrite($query, $parameters = null, $tag = null);
+    public function pushWrite(string $query, array $parameters = null, array $tag = null);
 
-    /**
-     * @param $query
-     * @param array|null $parameters
-     * @param array|null $tag
-     */
-    public function addPreflight($query, $parameters = null, $tag = null);
+    public function addPreflight(string $query, array $parameters = null, array $tag = null);
 
-    /**
-     * @return bool
-     */
-    public function hasPreflights();
-
-    /**
-     * @return \GraphAware\Common\Cypher\Statement[]
-     */
-    public function getPreflights();
-
-    /**
-     * @return int
-     */
-    public function size();
+    public function hasPreflights(): bool;
 
     /**
      * @return Statement[]
      */
-    public function statements();
+    public function getPreflights(): array;
+
+    public function size(): ?int;
+
+    /**
+     * @return Statement[]
+     */
+    public function statements(): array;
 
     /**
      * @return null|string
      */
-    public function getTag();
+    public function getTag(): ?string;
 
-    /**
-     * @return null|string
-     */
-    public function getConnectionAlias();
+    public function getConnectionAlias(): ?string;
 
-    /**
-     * @return bool
-     */
-    public function hasWrites();
+    public function hasWrites(): bool;
 }

@@ -15,106 +15,57 @@ use GraphAware\Common\Cypher\Statement;
 
 class Stack implements StackInterface
 {
-    /**
-     * @var null|string
-     */
-    protected $tag;
+    protected ?string $tag;
 
-    /**
-     * @var string
-     */
-    protected $connectionAlias;
+    protected ?string $connectionAlias;
 
-    /**
-     * @var Statement[]
-     */
-    protected $statements = [];
+    protected array $statements = [];
 
-    /**
-     * @var Statement[]
-     */
-    protected $preflights = [];
+    protected array $preflights = [];
 
-    /**
-     * @var bool
-     */
-    protected $hasWrites = false;
+    protected bool $hasWrites = false;
 
-    /**
-     * @param null        $tag
-     * @param null|string $connectionAlias
-     */
-    public function __construct($tag = null, $connectionAlias = null)
+    public function __construct($tag = null, string $connectionAlias = null)
     {
         $this->tag = null !== $tag ? (string) $tag : null;
         $this->connectionAlias = $connectionAlias;
     }
 
-    /**
-     * @param null|string $tag
-     * @param null|string $connectionAlias
-     *
-     * @return StackInterface
-     */
-    public static function create($tag = null, $connectionAlias = null)
+    public static function create(string $tag = null, string $connectionAlias = null): StackInterface
     {
         return new static($tag, $connectionAlias);
     }
 
-    /**
-     * @param string     $query
-     * @param null|array $parameters
-     * @param null|array $tag
-     */
-    public function push($query, $parameters = null, $tag = null)
+    public function push(string $query, array $parameters = null, array $tag = null): void
     {
         $params = null !== $parameters ? $parameters : [];
         $this->statements[] = Statement::create($query, $params, $tag);
     }
 
-    /**
-     * @param string $query
-     * @param null|array $parameters
-     * @param null|array $tag
-     */
-    public function pushWrite($query, $parameters = null, $tag = null)
+    public function pushWrite(string $query, array $parameters = null, array $tag = null): void
     {
         $params = null !== $parameters ? $parameters : [];
         $this->statements[] = Statement::create($query, $params, $tag);
         $this->hasWrites = true;
     }
 
-    /**
-     * @param $query
-     * @param array|null $parameters
-     * @param array|null $tag
-     */
-    public function addPreflight($query, $parameters = null, $tag = null)
+    public function addPreflight($query, array $parameters = null, array $tag = null): void
     {
         $params = null !== $parameters ? $parameters : [];
         $this->preflights[] = Statement::create($query, $params, $tag);
     }
 
-    /**
-     * @return bool
-     */
-    public function hasPreflights()
+    public function hasPreflights(): bool
     {
         return !empty($this->preflights);
     }
 
-    /**
-     * @return \GraphAware\Common\Cypher\Statement[]
-     */
-    public function getPreflights()
+    public function getPreflights(): array
     {
         return $this->preflights;
     }
 
-    /**
-     * @return int
-     */
-    public function size()
+    public function size(): int
     {
         return count($this->statements);
     }
@@ -122,31 +73,22 @@ class Stack implements StackInterface
     /**
      * @return Statement[]
      */
-    public function statements()
+    public function statements(): array
     {
         return $this->statements;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getTag()
+    public function getTag(): ?string
     {
         return $this->tag;
     }
 
-    /**
-     * @return null|string
-     */
-    public function getConnectionAlias()
+    public function getConnectionAlias(): ?string
     {
         return $this->connectionAlias;
     }
 
-    /**
-     * @return bool
-     */
-    public function hasWrites()
+    public function hasWrites(): bool
     {
         return $this->hasWrites;
     }
