@@ -40,7 +40,7 @@ class Connection
 
     private array|BaseConfiguration|null $config;
 
-    private SessionInterface $session;
+    private ?SessionInterface $session = null;
 
     public function __construct(string $alias, string $uri, BaseConfiguration $config = null)
     {
