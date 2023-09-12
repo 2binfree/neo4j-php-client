@@ -13,6 +13,7 @@ namespace GraphAware\Neo4j\Client;
 
 use GraphAware\Common\Cypher\Statement;
 use GraphAware\Common\Driver\PipelineInterface;
+use GraphAware\Common\Result\AbstractRecordCursor;
 use GraphAware\Common\Result\Record;
 use GraphAware\Common\Result\RecordCursorInterface;
 use GraphAware\Common\Result\Result;
@@ -210,12 +211,12 @@ class Client implements ClientInterface
      * @param string|null $tag
      * @param string|null $connectionAlias
      *
-     * @return Result
+     * @return RecordCursorInterface|Result
      * @throws Neo4jException
      * @deprecated since 4.0 - will be removed in 5.0 - use <code>$client->run()</code> instead
      *
      */
-    public function sendCypherQuery(string $query, array $parameters = null, string $tag = null, string $connectionAlias = null): Result
+    public function sendCypherQuery(string $query, array $parameters = null, string $tag = null, string $connectionAlias = null): RecordCursorInterface|Result
     {
         return $this->connectionManager
             ->getConnection($connectionAlias)

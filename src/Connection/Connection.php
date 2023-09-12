@@ -20,6 +20,7 @@ use GraphAware\Common\Cypher\Statement;
 use GraphAware\Common\Driver\DriverInterface;
 use GraphAware\Common\Driver\PipelineInterface;
 use GraphAware\Common\Driver\SessionInterface;
+use GraphAware\Common\Result\RecordCursorInterface;
 use GraphAware\Common\Result\Result;
 use GraphAware\Common\Result\ResultCollection;
 use GraphAware\Common\Transaction\TransactionInterface;
@@ -71,7 +72,7 @@ class Connection
     /**
      * @throws Neo4jException
      */
-    public function run(string $statement, array $parameters = null, string $tag = null): Result
+    public function run(string $statement, array $parameters = null, string $tag = null): RecordCursorInterface|Result
     {
         $this->checkSession();
         if (empty($statement)) {

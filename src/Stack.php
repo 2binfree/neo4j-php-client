@@ -31,7 +31,7 @@ class Stack implements StackInterface
         $this->connectionAlias = $connectionAlias;
     }
 
-    public static function create(string $tag = null, string $connectionAlias = null): StackInterface
+    public static function create(string $tag = null, string $connectionAlias = null): Stack
     {
         return new static($tag, $connectionAlias);
     }

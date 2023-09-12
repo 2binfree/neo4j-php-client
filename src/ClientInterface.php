@@ -11,12 +11,12 @@
 
 namespace GraphAware\Neo4j\Client;
 
-use GraphAware\Common\Result\AbstractRecordCursor;
+use GraphAware\Common\Result\RecordCursorInterface;
 use GraphAware\Common\Result\Result;
 use GraphAware\Neo4j\Client\Connection\ConnectionManager;
 use GraphAware\Neo4j\Client\Exception\Neo4jException;
 use GraphAware\Neo4j\Client\Exception\Neo4jExceptionInterface;
-use GraphAware\Neo4j\Client\Result\ResultCollection;
+use GraphAware\Common\Result\ResultCollection;
 use GraphAware\Neo4j\Client\Transaction\Transaction;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -30,20 +30,20 @@ interface ClientInterface
      *
      * @throws Neo4jExceptionInterface
      */
-    public function run($query, array $parameters = null, string $tag = null, string $connectionAlias = null): Result;
+    public function run($query, array $parameters = null, string $tag = null, string $connectionAlias = null): ?Result;
 
     /**
      * @throws Neo4jException
      */
-    public function runWrite(string $query, array $parameters = null, string $tag = null): AbstractRecordCursor;
+    public function runWrite(string $query, array $parameters = null, string $tag = null): Result;
 
     /**
      * @throws Neo4jException
      * @deprecated since 4.0 - will be removed in 5.0 - use <code>$client->runWrite()</code> instead
      */
-    public function sendWriteQuery(string $query, array $parameters = null, string $tag = null): AbstractRecordCursor;
+    public function sendWriteQuery(string $query, array $parameters = null, string $tag = null): Result;
 
-    public function stack(string $tag = null, string $connectionAlias = null): Stack;
+    public function stack(string $tag = null, string $connectionAlias = null): StackInterface;
 
     public function runStack(StackInterface $stack): ?ResultCollection;
 
@@ -54,7 +54,7 @@ interface ClientInterface
     /**
      *@deprecated since 4.0 - will be removed in 5.0 - use <code>$client->run()</code> instead
      */
-    public function sendCypherQuery(string $query, array $parameters = null, string $tag = null, string $connectionAlias = null): AbstractRecordCursor;
+    public function sendCypherQuery(string $query, array $parameters = null, string $tag = null, string $connectionAlias = null): RecordCursorInterface|Result;
 
     public function getConnectionManager(): ConnectionManager;
 
