@@ -12,27 +12,28 @@
 namespace GraphAware\Neo4j\Client\Event;
 
 use GraphAware\Common\Cypher\StatementInterface;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class PreRunEvent extends Event
+class PreRunEvent extends EventDispatcher
 {
     /**
      * @var StatementInterface[]
      */
-    private $statements;
+    private array $statements;
 
     /**
      * @param StatementInterface[] $statements
      */
     public function __construct(array $statements)
     {
+        parent::__construct();
         $this->statements = $statements;
     }
 
     /**
      * @return StatementInterface[]
      */
-    public function getStatements()
+    public function getStatements(): array
     {
         return $this->statements;
     }
