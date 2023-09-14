@@ -26,7 +26,7 @@
       "ext-mbstring": "*",
       "graphaware/neo4j-common": "^3.4",
       "tobinfree/neo4j-bolt": "^1.11.2",
-      "symfony/event-dispatcher": "5.4",
+      "symfony/event-dispatcher": "6.3.*",
       "myclabs/php-enum": "^1.4",
       "php-http/httplug": "^2.0",
       "php-http/message-factory": "^1.0",
@@ -39,7 +39,7 @@
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
         "phpunit/phpunit": "^4.0",
-        "symfony/stopwatch": "^5.0"
+        "symfony/stopwatch": "6.3.*"
     },
     "repositories": [
         {
@@ -57,7 +57,7 @@
             "GraphAware\\Neo4j\\Client\\Tests\\": "tests/"
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "config": {
         "allow-plugins": {
             "php-http/discovery": true
